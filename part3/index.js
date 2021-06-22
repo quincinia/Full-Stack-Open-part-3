@@ -1,8 +1,14 @@
-const { response } = require("express")
 const express = require("express")
 const app = express()
 
+const morgan = require("morgan")
+
 app.use(express.json())
+app.use(
+    morgan("tiny", {
+        skip: (req, res) => req.method === "POST",
+    })
+)
 
 // global variables
 let persons = [
@@ -51,9 +57,27 @@ app.delete("/api/persons/:id", (req, res) => {
     res.status(204).end()
 })
 
+app.get("/info", (req, res) => {
+    res.send(
+        `<div>Phonebook has info for ${persons.length} people</div>
+        <br />
+        <div>${new Date().toString()}</div>`
+    )
+})
+
+morgan.token("POST-Data", (req, res) => {
+    return JSON.stringify(req.body)
+})
+
+app.use(
+    morgan(
+        ":method :url :status :res[content-length] - :response-time ms :POST-Data"
+    )
+)
+
 app.post("/api/persons", (req, res) => {
     const info = req.body
-    console.log(info)
+    // console.log(info)
 
     // require that both fields be filled out
     if (!info.name || !info.number) {
@@ -86,14 +110,6 @@ app.post("/api/persons", (req, res) => {
     persons = persons.concat(newPerson)
 
     res.json(newPerson)
-})
-
-app.get("/info", (req, res) => {
-    res.send(
-        `<div>Phonebook has info for ${persons.length} people</div>
-        <br />
-        <div>${new Date().toString()}</div>`
-    )
 })
 
 const PORT = 3001
