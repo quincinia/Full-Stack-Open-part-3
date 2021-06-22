@@ -1,0 +1,11 @@
+### delete a resource (change id as needed)
+DELETE http://localhost:3001/api/persons/3
+
+### add a resource (change values as needed)
+POST http://localhost:3001/api/persons
+content-type: application/json
+
+{
+    "name": "test",
+    "number": "123"
+}
