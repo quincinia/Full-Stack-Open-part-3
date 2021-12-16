@@ -9,3 +9,7 @@ content-type: application/json
     "name": "test",
     "number": "123"
 }
+
+
+### GET
+GET http://localhost:3001/api/persons
