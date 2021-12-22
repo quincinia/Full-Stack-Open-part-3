@@ -1,6 +1,8 @@
+require('dotenv').config() // pulling from .env
 const express = require("express")
 const morgan = require("morgan")
 const cors = require("cors")
+const Person = require('.models/person')
 const app = express()
 
 app.use(cors())
@@ -11,7 +13,6 @@ app.use(
         skip: (req, res) => req.method === "POST",
     })
 )
-
 // global variables
 let persons = [
     {

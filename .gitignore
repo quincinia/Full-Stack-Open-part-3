@@ -3,3 +3,4 @@ part3/node_modules/
 .vscode
 frontend/node_modules
 frontend/build
+part3/.env
