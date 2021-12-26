@@ -83,7 +83,8 @@ app.use(
     )
 )
 
-app.post("/api/persons", (req, res) => {
+// Add new person
+app.post("/api/persons", async (req, res) => {
     const info = req.body
     // console.log(info)
 
@@ -93,31 +94,59 @@ app.post("/api/persons", (req, res) => {
     }
 
     // new person cannot create name conflict
-    if (persons.some((item) => item.name === info.name)) {
-        return res.status(400).json({ error: "name must be unique" })
-    }
+    // if (persons.some((item) => item.name === info.name)) {
+    //     return res.status(400).json({ error: "name must be unique" })
+    // }
 
+    // Flag needed so that we end early
+    // We cannot end (using the 'return' keyword) from inside the promise handlers, so we will set a flag to do that for us
+    let endResponse = false
+    // Checking for name conflicts using MongoDB
+    await Person.exists({ name: info.name })
+        .then(result => {
+            // Duplicate name exists
+            if (result) {
+                res.status(400).json({ error: "name must be unique" })
+                endResponse = true
+            }
+        })
+        .catch(error => {
+            console.log(error)
+            res.status(400).json({ error: "DB error" })
+            endResponse = true
+        })
+    if (endResponse === true) return
+    // Obsolete since MongoDB uses its own indexes
     // generates an int from [min, max]
-    function genInt(min, max) {
-        min = Math.ceil(min)
-        max = Math.floor(max)
-        return Math.floor(Math.random() * (max - min + 1) + min)
-    }
+    // function genInt(min, max) {
+    //     min = Math.ceil(min)
+    //     max = Math.floor(max)
+    //     return Math.floor(Math.random() * (max - min + 1) + min)
+    // }
 
-    let newId = genInt(1, 10000)
-    while (persons.some((item) => item.id === newId)) {
-        newId = genInt(1, 10000)
-    }
+    // let newId = genInt(1, 10000)
+    // while (persons.some((item) => item.id === newId)) {
+    //     newId = genInt(1, 10000)
+    // }
 
-    const newPerson = {
-        id: newId,
-        name: info.name,
-        number: info.number,
-    }
+    const newPerson = new Person({ name: info.name, number: info.number })
 
-    persons = persons.concat(newPerson)
+    // No longer using local variables
+    // persons = persons.concat(newPerson)
 
-    res.json(newPerson)
+
+    // res.json(newPerson)
+
+    newPerson.save()
+        .then(result => {
+            console.log(`added ${info.name} number ${info.number} to phonebook`)
+            // save() returns the saved object
+            res.json(result)
+        })
+        .catch(error => {
+            console.log(error)
+            res.status(400).json({ error: "DB error" })
+        })
 })
 
 const PORT = process.env.PORT || 3001
