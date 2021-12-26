@@ -68,10 +68,7 @@ app.delete("/api/persons/:id", (req, res) => {
         .then(result => {
             res.status(204).end()
         })
-        .catch(error => {
-            console.log(error)
-            res.status(400).json({ error: "DB error" })
-        })
+        .catch(error => next(error))
 })
 
 app.get("/info", (req, res) => {
@@ -119,11 +116,7 @@ app.post("/api/persons", async (req, res) => {
                 endResponse = true
             }
         })
-        .catch(error => {
-            console.log(error)
-            res.status(400).json({ error: "DB error" })
-            endResponse = true
-        })
+        .catch(error => next(error))
     if (endResponse === true) return
     // Obsolete since MongoDB uses its own indexes
     // generates an int from [min, max]
@@ -152,11 +145,15 @@ app.post("/api/persons", async (req, res) => {
             // save() returns the saved object
             res.json(result)
         })
-        .catch(error => {
-            console.log(error)
-            res.status(400).json({ error: "DB error" })
-        })
+        .catch(error => next(error))
 })
+
+// Default error handler (usually considered for DB errors)
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message)
+    return res.status(400).json({ error: "DB error" })
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
