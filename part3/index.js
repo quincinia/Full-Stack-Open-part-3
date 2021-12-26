@@ -47,15 +47,27 @@ app.get("/api/persons", (req, res) => {
     })
 })
 
-app.get("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.find((item) => item.id === id)
+app.get("/api/persons/:id", (req, res, next) => {
+    // No longer using local variables
+    // const id = Number(req.params.id)
+    // const person = persons.find((item) => item.id === id)
 
-    if (person) {
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
+    // if (person) {
+    //     res.json(person)
+    // } else {
+    //     res.status(404).end()
+    // }
+
+    const id = req.params.id
+    Person.findById(id)
+        .then(person => {
+            if (person) {
+                res.json(person)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(error => next(error))
 })
 
 app.put("/api/persons/:id", (req, res, next) => {
@@ -83,12 +95,22 @@ app.delete("/api/persons/:id", (req, res, next) => {
         .catch(error => next(error))
 })
 
-app.get("/info", (req, res) => {
-    res.send(
-        `<div>Phonebook has info for ${persons.length} people</div>
-        <br />
-        <div>${new Date().toString()}</div>`
-    )
+app.get("/info", async (req, res, next) => {
+    let count = 0
+    let good = true // In case an error occurred
+    await Person.countDocuments({})
+        .then(result => count = result)
+        .catch(error => {
+            next(error)
+            good = false
+        })
+    if (good) {
+        res.send(
+            `<div>Phonebook has info for ${count} people</div>
+            <br />
+            <div>${new Date().toString()}</div>`
+        )
+    }
 })
 
 morgan.token("POST-Data", (req, res) => {
@@ -128,7 +150,10 @@ app.post("/api/persons", async (req, res, next) => {
                 endResponse = true
             }
         })
-        .catch(error => next(error))
+        .catch(error => {
+            next(error)
+            endResponse = true
+        })
     if (endResponse === true) return
     // Obsolete since MongoDB uses its own indexes
     // generates an int from [min, max]
@@ -159,6 +184,16 @@ app.post("/api/persons", async (req, res, next) => {
         })
         .catch(error => next(error))
 })
+
+// For getting an individual id
+const castErrorHandler = (error, req, res, next) => {
+    if (error.name === 'CaseError') {
+        console.error(error.message)
+        return response.status(400).send({ error: 'malformatted id' })
+    }
+    next(error)
+}
+app.use(castErrorHandler)
 
 // Default error handler (usually considered for DB errors)
 const errorHandler = (error, req, res, next) => {
