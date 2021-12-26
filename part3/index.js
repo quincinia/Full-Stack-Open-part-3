@@ -59,10 +59,19 @@ app.get("/api/persons/:id", (req, res) => {
 })
 
 app.delete("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter((item) => item.id !== id)
+    // No longer using local variables
+    // const id = Number(req.params.id)
+    // persons = persons.filter((item) => item.id !== id)
 
-    res.status(204).end()
+    const id = req.params.id
+    Person.findByIdAndDelete(id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(error => {
+            console.log(error)
+            res.status(400).json({ error: "DB error" })
+        })
 })
 
 app.get("/info", (req, res) => {
