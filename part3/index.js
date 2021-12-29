@@ -128,33 +128,36 @@ app.post("/api/persons", async (req, res, next) => {
     const info = req.body
     // console.log(info)
 
-    // require that both fields be filled out
-    if (!info.name || !info.number) {
-        return res.status(400).json({ error: "content missing" })
-    }
+    // require that both fields be filled out (handled by validator)
+    // if (!info.name || !info.number) {
+    //     return res.status(400).json({ error: "content missing" })
+    // }
 
     // new person cannot create name conflict
     // if (persons.some((item) => item.name === info.name)) {
     //     return res.status(400).json({ error: "name must be unique" })
     // }
 
+    // Handled by validator
     // Flag needed so that we end early
     // We cannot end (using the 'return' keyword) from inside the promise handlers, so we will set a flag to do that for us
-    let endResponse = false
+    // let endResponse = false
+
     // Checking for name conflicts using MongoDB
-    await Person.exists({ name: info.name })
-        .then(result => {
-            // Duplicate name exists
-            if (result) {
-                res.status(400).json({ error: "name must be unique" })
-                endResponse = true
-            }
-        })
-        .catch(error => {
-            next(error)
-            endResponse = true
-        })
-    if (endResponse === true) return
+    // await Person.exists({ name: info.name })
+    //     .then(result => {
+    //         // Duplicate name exists
+    //         if (result) {
+    //             res.status(400).json({ error: "name must be unique" })
+    //             endResponse = true
+    //         }
+    //     })
+    //     .catch(error => {
+    //         next(error)
+    //         endResponse = true
+    //     })
+    // if (endResponse === true) return
+
     // Obsolete since MongoDB uses its own indexes
     // generates an int from [min, max]
     // function genInt(min, max) {
@@ -185,19 +188,24 @@ app.post("/api/persons", async (req, res, next) => {
         .catch(error => next(error))
 })
 
-// For getting an individual id
-const castErrorHandler = (error, req, res, next) => {
-    if (error.name === 'CaseError') {
-        console.error(error.message)
-        return response.status(400).send({ error: 'malformatted id' })
-    }
-    next(error)
-}
-app.use(castErrorHandler)
+// For getting an individual id (obsolete, moved into errorHandler)
+// const castErrorHandler = (error, req, res, next) => {
+//     if (error.name === 'CastError') {
+//         console.error(error.message)
+//         return res.status(400).send({ error: 'malformatted id' })
+//     }
+//     next(error)
+// }
+// app.use(castErrorHandler)
 
-// Default error handler (usually considered for DB errors)
+// Default error handler 
 const errorHandler = (error, req, res, next) => {
     console.error(error.message)
+    if (error.name === 'CastError') {
+        return res.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return res.status(400).send({ error: error.message })
+    }
     return res.status(400).json({ error: "DB error" })
 }
 app.use(errorHandler)
