@@ -109,14 +109,19 @@ const App = () => {
                         )
                     )
                     .catch((error) => {
+                        // Basically the same as the below catch block
+                        console.log(error)
                         setNotifMessage({
-                            message: `Information of ${newName} has already been removed from server`,
+                            message: error.response.data.error,
                             type: "error",
                         })
+                        setNewName("")
+                        setNewNumber("")
+                        // This error shouldn't happen now that we're not using local vars anymore?
                         // remove this person from local array
-                        setPersons(
-                            persons.filter((item) => item.id !== person.id)
-                        )
+                        // setPersons(
+                        //     persons.filter((item) => item.id !== person.id)
+                        // )
                         setTimeout(() => {
                             setNotifMessage({
                                 message: null,
@@ -140,6 +145,20 @@ const App = () => {
                         setNotifMessage({
                             message: null,
                             type: null,
+                        })
+                    }, 5000)
+                })
+                .catch((error) => {
+                    setNotifMessage({
+                        message: error.response.data.error,
+                        type: "error"
+                    })
+                    setNewName("")
+                    setNewNumber("")
+                    setTimeout(() => {
+                        setNotifMessage({
+                            message: null,
+                            type: null
                         })
                     }, 5000)
                 })

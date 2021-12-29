@@ -16,8 +16,17 @@ mongoose.connect(url)
     })
 
 const personSchema = new mongoose.Schema({
-    name: { type: String, unique: true, required: true}, // Only names are unique
-    number: { type: String, required: true }
+    name: { 
+        type: String, 
+        minLength: 3,
+        unique: true, // Only names are unique
+        required: true 
+    },
+    number: { 
+        type: String, 
+        match: /^\d{3}-\d{7}$/,
+        required: true 
+    }
 })
 
 personSchema.plugin(uniqueValidator)
