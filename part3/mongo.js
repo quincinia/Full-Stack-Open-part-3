@@ -5,10 +5,10 @@ if (process.argv.length < 3) {
     console.log('Please provide the password as an argument: node mongo.js <password>')
     process.exit(1)
 }
-  
+
 const password = process.argv[2]
 
-const url = 
+const url =
     `mongodb+srv://FSO:${password}@cluster0.cccin.mongodb.net/phonebook?retryWrites=true&w=majority`
 
 // An exception will be thrown on bad password
@@ -45,7 +45,7 @@ if (process.argv.length === 3) {
             fullName.push(process.argv[i])
             if (process.argv[i].at(-1) === '"') break
         }
-        
+
         // Join all the parts, and remove the quotes
         name = fullName.join(' ').replace('"', '')
     }
@@ -55,7 +55,7 @@ if (process.argv.length === 3) {
 
     // Save the new person into the DB
     const person = new Person({ name, number })
-    person.save().then(result => {
+    person.save().then(() => {
         console.log(`added ${name} number ${number} to phonebook`)
         mongoose.connection.close()
     })

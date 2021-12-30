@@ -11,4 +11,4 @@ Updated the old `update` error handler to no longer remove the updated item sinc
 No code changes made for deployment.
 
 ## Exercise 3.22
-
+Got rid of unused parameters (reluctantly).
